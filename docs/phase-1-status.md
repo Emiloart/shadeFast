@@ -17,8 +17,10 @@ State: complete
 - Baseline migration validated on isolated Postgres with scripted harness.
 - Flutter toolchain bootstrap and `flutter pub get` validation completed.
 - Remote Supabase dev project linked and synchronized.
+- Anonymous sign-ins enabled in Supabase Auth and verified.
 - Remote edge functions deployed with `--import-map supabase/functions/deno.json --no-verify-jwt --use-api`.
 - Remote smoke test harness added (`scripts/smoke-remote.sh`) and validated:
+  - anonymous auth signup path
   - feature/template function probes
   - private link lifecycle + read-once message consumption
   - maintenance workers dry-run (`expire-content`, `send-push-notifications`)
@@ -33,5 +35,5 @@ State: complete
 
 ## Immediate next actions
 
-1. Enable anonymous sign-ins in Supabase Auth for mobile onboarding (`signInAnonymously` path).
-2. Keep remote function deploys aligned with `--import-map supabase/functions/deno.json --no-verify-jwt --use-api`.
+1. Keep remote function deploys aligned with `--import-map supabase/functions/deno.json --no-verify-jwt --use-api`.
+2. Begin Phase 2 hardening (end-to-end UX passes, store release prep, analytics/privacy QA).

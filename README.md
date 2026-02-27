@@ -49,7 +49,7 @@ Run remote smoke validation with `./scripts/smoke-remote.sh`.
 
 ## Next steps
 
-1. Enable anonymous sign-ins in Supabase Auth for mobile onboarding (`signInAnonymously` path).
+1. Keep remote edge function deploys aligned with `--import-map supabase/functions/deno.json --no-verify-jwt --use-api`.
 2. Configure domain association files for production deep links (`assetlinks.json` + `apple-app-site-association`).
 3. Wire production push provider webhook secrets and run non-dry-run delivery validation.
 

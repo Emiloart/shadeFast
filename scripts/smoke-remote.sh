@@ -174,6 +174,9 @@ read_json_field() {
       case 'messages_length':
         value = Array.isArray(payload.messages) ? String(payload.messages.length) : '';
         break;
+      case 'anonymous_user_id':
+        value = payload.user?.id ?? '';
+        break;
       default:
         value = '';
     }
@@ -214,10 +217,12 @@ append_chat_message() {
 
 user_a_id=""
 user_b_id=""
+anon_probe_user_id=""
 
 cleanup() {
   admin_delete_user "$user_a_id"
   admin_delete_user "$user_b_id"
+  admin_delete_user "$anon_probe_user_id"
 }
 trap cleanup EXIT
 
@@ -226,6 +231,23 @@ user_a_email="smoke-${seed_suffix}-a@shadefast.local"
 user_b_email="smoke-${seed_suffix}-b@shadefast.local"
 user_a_password="ShadeFast!${seed_suffix}Aa"
 user_b_password="ShadeFast!${seed_suffix}Bb"
+
+echo "Validating anonymous auth..."
+anon_signup_json="$(
+  api_call \
+    "200" \
+    "POST" \
+    "${supabase_url}/auth/v1/signup" \
+    "$anon_key" \
+    "$anon_key" \
+    "{\"data\":{\"source\":\"smoke_anon_check\"}}"
+)"
+anon_probe_user_id="$(read_json_field "$anon_signup_json" "anonymous_user_id")"
+if [[ -z "$anon_probe_user_id" ]]; then
+  echo "Failed to parse anonymous signup user id."
+  echo "$anon_signup_json"
+  exit 1
+fi
 
 echo "Creating temporary auth users..."
 

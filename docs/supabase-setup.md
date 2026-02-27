@@ -56,6 +56,7 @@
 - Confirm `public.subscription_products` and `public.user_entitlements` exist and entitlement APIs return expected active state.
 - Confirm `public.sponsored_community_templates` exists and `list-sponsored-community-templates` returns active templates.
 - Confirm `public.feature_flags` and `public.experiment_events` exist and experiment APIs return/record expected data.
+- Confirm anonymous auth sign-in is enabled and returns `is_anonymous=true` users.
 - If Supabase local stack is unavailable, run `./scripts/validate-migrations-postgres.sh` for schema/policy application validation on isolated Postgres.
 - Run remote smoke validation with `./scripts/smoke-remote.sh`.
 
