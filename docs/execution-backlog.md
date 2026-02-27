@@ -19,7 +19,7 @@ Legend:
 | FND-009 | P0 | done | Apply baseline migrations in local validation environment | `scripts/validate-migrations-postgres.sh` (isolated Postgres) |
 | FND-010 | P0 | done | Run Flutter dependency/bootstrap validation | `scripts/bootstrap-local.sh` + `flutter pub get` |
 | FND-011 | P1 | done | Define edge API contracts | `docs/api-contracts.md` |
-| FND-012 | P1 | todo | Link remote Supabase dev project | optional: requires project credentials |
+| FND-012 | P1 | done | Link remote Supabase dev project | linked project + remote smoke validation (`scripts/smoke-remote.sh`) |
 
 ## Phase 2: Core Features
 

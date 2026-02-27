@@ -37,6 +37,7 @@ Track progress in `docs/phase-1-status.md`.
 Validate baseline migrations locally with `make validate-migrations`.
 Run full local foundation checks (includes `flutter pub get`) with `make bootstrap`.
 If Flutter is not on `PATH`, run `FLUTTER_BIN=/path/to/flutter make bootstrap`.
+Run remote smoke validation with `./scripts/smoke-remote.sh`.
 
 ## Repository structure
 
@@ -48,8 +49,8 @@ If Flutter is not on `PATH`, run `FLUTTER_BIN=/path/to/flutter make bootstrap`.
 
 ## Next steps
 
-1. (Optional) Link remote Supabase dev project and run `supabase db push`.
+1. Enable anonymous sign-ins in Supabase Auth for mobile onboarding (`signInAnonymously` path).
 2. Configure domain association files for production deep links (`assetlinks.json` + `apple-app-site-association`).
-3. Optional: link remote Supabase env and deploy latest migrations/functions.
+3. Wire production push provider webhook secrets and run non-dry-run delivery validation.
 
 See `docs/api-contracts.md` for current edge function payloads.

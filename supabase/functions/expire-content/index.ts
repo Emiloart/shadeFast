@@ -27,8 +27,25 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   const authHeader = req.headers.get('Authorization') ?? '';
-  const expected = `Bearer ${serviceRoleKey}`;
-  if (authHeader.trim() !== expected) {
+  if (!authHeader.startsWith('Bearer ')) {
+    return errorResponse(401, 'invalid_auth', 'Service role authorization required.');
+  }
+  const accessToken = authHeader.replace('Bearer ', '').trim();
+  if (!accessToken) {
+    return errorResponse(401, 'invalid_auth', 'Service role authorization required.');
+  }
+
+  const serviceAuthClient = createClient(supabaseUrl, accessToken, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+  const { error: serviceAuthError } = await serviceAuthClient.auth.admin.listUsers({
+    page: 1,
+    perPage: 1,
+  });
+  if (serviceAuthError) {
     return errorResponse(401, 'invalid_auth', 'Service role authorization required.');
   }
 

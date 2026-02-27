@@ -57,13 +57,12 @@
 - Confirm `public.sponsored_community_templates` exists and `list-sponsored-community-templates` returns active templates.
 - Confirm `public.feature_flags` and `public.experiment_events` exist and experiment APIs return/record expected data.
 - If Supabase local stack is unavailable, run `./scripts/validate-migrations-postgres.sh` for schema/policy application validation on isolated Postgres.
+- Run remote smoke validation with `./scripts/smoke-remote.sh`.
 
 ## Edge Functions deploy
 
 1. Set function secrets:
-   - `supabase secrets set SUPABASE_URL=<...>`
-   - `supabase secrets set SUPABASE_ANON_KEY=<...>`
-   - `supabase secrets set SUPABASE_SERVICE_ROLE_KEY=<...>`
+   - Reserved Supabase secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) are managed by the platform and cannot be set manually.
    - optional webhook moderation:
      - `supabase secrets set UPLOAD_POLICY_WEBHOOK_URL=<...>`
      - `supabase secrets set UPLOAD_POLICY_WEBHOOK_TOKEN=<...>`
@@ -73,37 +72,12 @@
      - `supabase secrets set PUSH_PROVIDER_WEBHOOK_TOKEN=<...>`
      - `supabase secrets set PUSH_PROVIDER_STRICT_MODE=true`
 2. Deploy baseline functions:
-   - `supabase functions deploy create-community`
-   - `supabase functions deploy list-sponsored-community-templates`
-   - `supabase functions deploy join-community`
-   - `supabase functions deploy create-post`
-   - `supabase functions deploy moderate-upload`
-   - `supabase functions deploy create-poll`
-   - `supabase functions deploy vote-poll`
-   - `supabase functions deploy list-trending-polls`
-   - `supabase functions deploy create-challenge`
-   - `supabase functions deploy list-trending-challenges`
-   - `supabase functions deploy submit-challenge-entry`
-   - `supabase functions deploy register-push-token`
-   - `supabase functions deploy unregister-push-token`
-   - `supabase functions deploy list-notification-events`
-   - `supabase functions deploy send-push-notifications`
-   - `supabase functions deploy list-subscription-products`
-   - `supabase functions deploy list-user-entitlements`
-   - `supabase functions deploy activate-premium-trial`
-   - `supabase functions deploy set-entitlement`
-   - `supabase functions deploy list-feature-flags`
-   - `supabase functions deploy track-experiment-event`
-   - `supabase functions deploy react-to-post`
-   - `supabase functions deploy report-content`
-   - `supabase functions deploy block-user`
-   - `supabase functions deploy create-private-chat-link`
-   - `supabase functions deploy join-private-chat`
-   - `supabase functions deploy read-private-message-once`
-   - `supabase functions deploy expire-content`
-   - `supabase functions deploy list-reports`
-   - `supabase functions deploy review-report`
-   - `supabase functions deploy enforce-user`
+   - Use these flags for deploy parity with current remote runtime behavior:
+     - `--import-map supabase/functions/deno.json`
+     - `--no-verify-jwt`
+     - `--use-api`
+   - Example:
+     - `supabase functions deploy create-community --import-map supabase/functions/deno.json --no-verify-jwt --use-api`
 
 ## Media retention automation
 
