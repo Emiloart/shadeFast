@@ -144,7 +144,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   const rows = messages ?? [];
-  if (rows.length == 0) {
+  if (rows.length === 0) {
     return jsonResponse(
       {
         messages: [],
@@ -154,10 +154,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   const ids = rows.map((row) => row.id);
-  const { error: deleteError } = await adminClient
+  const { data: deletedRows, error: deleteError } = await adminClient
     .from('chat_messages')
     .delete()
-    .in('id', ids);
+    .in('id', ids)
+    .select('id');
 
   if (deleteError) {
     console.error('read-private-message-once delete failed', deleteError);
@@ -168,9 +169,25 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
   }
 
+  const deletedIdSet = new Set(
+    (deletedRows ?? [])
+      .map((row) => row.id)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0),
+  );
+
+  const deliveredMessages = rows.filter((row) => deletedIdSet.has(row.id));
+  if (deliveredMessages.length === 0) {
+    return jsonResponse(
+      {
+        messages: [],
+      },
+      200,
+    );
+  }
+
   return jsonResponse(
     {
-      messages: rows,
+      messages: deliveredMessages,
     },
     200,
   );
