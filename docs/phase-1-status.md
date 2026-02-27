@@ -36,4 +36,4 @@ State: complete
 ## Immediate next actions
 
 1. Keep remote function deploys aligned with `--import-map supabase/functions/deno.json --no-verify-jwt --use-api`.
-2. Begin Phase 2 hardening (end-to-end UX passes, store release prep, analytics/privacy QA).
+2. Continue active Phase 2 hardening sprint (`docs/phase-2-status.md`).

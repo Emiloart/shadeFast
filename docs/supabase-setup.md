@@ -77,7 +77,9 @@
      - `--import-map supabase/functions/deno.json`
      - `--no-verify-jwt`
      - `--use-api`
-   - Example:
+   - Recommended:
+     - `./scripts/deploy-functions-remote.sh`
+   - Example single function:
      - `supabase functions deploy create-community --import-map supabase/functions/deno.json --no-verify-jwt --use-api`
 
 ## Media retention automation

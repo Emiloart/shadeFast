@@ -33,10 +33,11 @@ Phase 1 (foundation) is complete in this repository with:
 - in-app legal surfaces (`/legal` Terms/Privacy/Guidelines)
 - incident response runbook (`docs/incident-runbook.md`)
 
-Track progress in `docs/phase-1-status.md`.
+Track progress in `docs/phase-1-status.md` and `docs/phase-2-status.md`.
 Validate baseline migrations locally with `make validate-migrations`.
 Run full local foundation checks (includes `flutter pub get`) with `make bootstrap`.
 If Flutter is not on `PATH`, run `FLUTTER_BIN=/path/to/flutter make bootstrap`.
+Deploy all edge functions with `make deploy-functions` (or `./scripts/deploy-functions-remote.sh`).
 Run remote smoke validation with `./scripts/smoke-remote.sh`.
 
 ## Repository structure

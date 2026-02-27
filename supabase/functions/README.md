@@ -40,39 +40,11 @@
 
 ## Deploy notes
 
-1. Set secrets in Supabase project:
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-2. Deploy:
-   - `supabase functions deploy create-community`
-   - `supabase functions deploy list-sponsored-community-templates`
-   - `supabase functions deploy join-community`
-   - `supabase functions deploy create-post`
-   - `supabase functions deploy moderate-upload`
-   - `supabase functions deploy create-poll`
-   - `supabase functions deploy vote-poll`
-   - `supabase functions deploy list-trending-polls`
-   - `supabase functions deploy create-challenge`
-   - `supabase functions deploy list-trending-challenges`
-   - `supabase functions deploy submit-challenge-entry`
-   - `supabase functions deploy register-push-token`
-   - `supabase functions deploy unregister-push-token`
-   - `supabase functions deploy list-notification-events`
-   - `supabase functions deploy send-push-notifications`
-   - `supabase functions deploy list-subscription-products`
-   - `supabase functions deploy list-user-entitlements`
-   - `supabase functions deploy activate-premium-trial`
-   - `supabase functions deploy set-entitlement`
-   - `supabase functions deploy list-feature-flags`
-   - `supabase functions deploy track-experiment-event`
-   - `supabase functions deploy react-to-post`
-   - `supabase functions deploy report-content`
-   - `supabase functions deploy block-user`
-   - `supabase functions deploy create-private-chat-link`
-   - `supabase functions deploy join-private-chat`
-   - `supabase functions deploy read-private-message-once`
-   - `supabase functions deploy expire-content`
-   - `supabase functions deploy list-reports`
-   - `supabase functions deploy review-report`
-   - `supabase functions deploy enforce-user`
+1. Reserved Supabase secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) are managed by the platform.
+2. Optional provider secrets can still be set with `supabase secrets set ...` (push/webhook integrations).
+3. Deploy all functions with repo-standard flags:
+   - `./scripts/deploy-functions-remote.sh`
+4. Deploy a subset:
+   - `./scripts/deploy-functions-remote.sh create-post read-private-message-once`
+5. Deploy to explicit project ref:
+   - `./scripts/deploy-functions-remote.sh --project-ref <project_ref>`

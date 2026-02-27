@@ -1,4 +1,4 @@
-.PHONY: check bootstrap validate-migrations expire-content expire-content-dry-run push-delivery push-delivery-dry-run
+.PHONY: check bootstrap validate-migrations deploy-functions expire-content expire-content-dry-run push-delivery push-delivery-dry-run
 
 check:
 	./scripts/validate-foundation.sh
@@ -8,6 +8,9 @@ bootstrap:
 
 validate-migrations:
 	./scripts/validate-migrations-postgres.sh
+
+deploy-functions:
+	./scripts/deploy-functions-remote.sh
 
 expire-content:
 	./scripts/run-expire-content.sh

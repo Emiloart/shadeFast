@@ -4,6 +4,18 @@ Legend:
 - Status: `todo`, `in_progress`, `blocked`, `done`
 - Priority: `P0` critical, `P1` high, `P2` medium
 
+## Active Phase 2: Hardening Sprint
+
+| ID | Priority | Status | Task | Output |
+|---|---|---|---|---|
+| P2H-001 | P0 | done | Phase 2 kickoff tracking | backlog and status docs aligned to active hardening sprint |
+| P2H-002 | P0 | done | Standardize remote function deployment | `scripts/deploy-functions-remote.sh`, `make deploy-functions`, deploy docs updated |
+| P2H-003 | P0 | in_progress | Expand CI quality gates | CI now includes foundation + migration validation + Flutter analyze/tests |
+| P2H-004 | P1 | todo | End-to-end UX bug bash (onboarding → join/create → first post) | reproducible bug list + fixes + acceptance checklist |
+| P2H-005 | P1 | todo | Mobile release identity/signing cleanup | Android app id/signing TODO removal + iOS release config audit |
+| P2H-006 | P1 | todo | Production deep-link/domain association files | `assetlinks.json` + `apple-app-site-association` integration and verification |
+| P2H-007 | P2 | todo | Beta analytics + stability instrumentation | privacy-safe event/crash instrumentation plan and implementation |
+
 ## Phase 1: Foundation
 
 | ID | Priority | Status | Task | Output |
