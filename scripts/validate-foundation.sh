@@ -9,6 +9,9 @@ required_files=(
   "docs/api-contracts.md"
   "docs/supabase-setup.md"
   "docs/incident-runbook.md"
+  "docs/deep-link-release.md"
+  "docs/mobile-release-checklist.md"
+  "docs/phase-2-status.md"
   "supabase/migrations/202602250001_initial_schema.sql"
   "supabase/migrations/202602250002_expiry_worker.sql"
   "supabase/migrations/202602250003_media_retention_queue.sql"
@@ -58,6 +61,12 @@ required_files=(
   "supabase/functions/_shared/push.ts"
   "supabase/functions/_shared/rate_limit.ts"
   "scripts/validate-migrations-postgres.sh"
+  "scripts/validate-domain-association.sh"
+  "deploy/domain/.well-known/assetlinks.json"
+  "deploy/domain/.well-known/apple-app-site-association"
+  "docs/analytics-privacy.md"
+  "docs/phase-2-ux-bugbash.md"
+  "apps/mobile/android/key.properties.example"
   "apps/mobile/lib/features/feed/data/feed_repository.dart"
   "apps/mobile/lib/features/feed/application/feed_controllers.dart"
   "apps/mobile/lib/features/legal/presentation/legal_screen.dart"
@@ -86,6 +95,8 @@ for file in "${required_files[@]}"; do
     exit 1
   fi
 done
+
+./scripts/validate-domain-association.sh
 
 sql_file="supabase/migrations/202602250001_initial_schema.sql"
 required_patterns=(

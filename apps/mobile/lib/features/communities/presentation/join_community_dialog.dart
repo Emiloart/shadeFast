@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class JoinCommunityDialog extends StatefulWidget {
   const JoinCommunityDialog({super.key});
@@ -36,14 +37,25 @@ class _JoinCommunityDialogState extends State<JoinCommunityDialog> {
           controller: _joinCodeController,
           maxLength: 8,
           textCapitalization: TextCapitalization.characters,
+          inputFormatters: <TextInputFormatter>[
+            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+            TextInputFormatter.withFunction(
+              (TextEditingValue oldValue, TextEditingValue newValue) {
+                return newValue.copyWith(
+                  text: newValue.text.toUpperCase(),
+                  selection: newValue.selection,
+                );
+              },
+            ),
+          ],
           decoration: const InputDecoration(
             labelText: 'Join code',
             hintText: '8-character code',
           ),
           validator: (String? value) {
             final text = value?.trim() ?? '';
-            if (text.length != 8) {
-              return 'Join code must be exactly 8 characters.';
+            if (!RegExp(r'^[A-Z0-9]{8}$').hasMatch(text)) {
+              return 'Use 8 letters/numbers only.';
             }
             return null;
           },

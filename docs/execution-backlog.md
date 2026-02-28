@@ -10,11 +10,11 @@ Legend:
 |---|---|---|---|---|
 | P2H-001 | P0 | done | Phase 2 kickoff tracking | backlog and status docs aligned to active hardening sprint |
 | P2H-002 | P0 | done | Standardize remote function deployment | `scripts/deploy-functions-remote.sh`, `make deploy-functions`, deploy docs updated |
-| P2H-003 | P0 | in_progress | Expand CI quality gates | CI now includes foundation + migration validation + Flutter analyze/tests |
-| P2H-004 | P1 | todo | End-to-end UX bug bash (onboarding → join/create → first post) | reproducible bug list + fixes + acceptance checklist |
-| P2H-005 | P1 | todo | Mobile release identity/signing cleanup | Android app id/signing TODO removal + iOS release config audit |
-| P2H-006 | P1 | todo | Production deep-link/domain association files | `assetlinks.json` + `apple-app-site-association` integration and verification |
-| P2H-007 | P2 | todo | Beta analytics + stability instrumentation | privacy-safe event/crash instrumentation plan and implementation |
+| P2H-003 | P0 | done | Expand CI quality gates | CI includes foundation + migration validation + Flutter analyze/tests |
+| P2H-004 | P1 | done | End-to-end UX bug bash (onboarding → join/create → first post) | `docs/phase-2-ux-bugbash.md` + onboarding retry + join code validation + post-flow telemetry |
+| P2H-005 | P1 | done | Mobile release identity/signing cleanup | Android package/signing config standardized + iOS bundle id audit + release checklist |
+| P2H-006 | P1 | done | Production deep-link/domain association files | `deploy/domain/.well-known/` artifacts + `scripts/validate-domain-association.sh` + release runbook |
+| P2H-007 | P2 | done | Beta analytics + stability instrumentation | `core/telemetry` instrumentation, global error event capture, telemetry sanitization tests, privacy guardrails doc |
 
 ## Phase 1: Foundation
 

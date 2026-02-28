@@ -113,3 +113,12 @@
    - visibility: `public` (MVP baseline)
 2. Add retention policy/job before production:
    - enforce max object age aligned to content TTL requirements.
+
+## Deep-link domain files
+
+1. Update and publish:
+   - `deploy/domain/.well-known/assetlinks.json`
+   - `deploy/domain/.well-known/apple-app-site-association`
+2. Validate locally before publish:
+   - `./scripts/validate-domain-association.sh`
+3. Follow release details in `docs/deep-link-release.md`.

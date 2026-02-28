@@ -1,4 +1,4 @@
-package io.shadefast.shadefast_mobile
+package io.shadefast.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

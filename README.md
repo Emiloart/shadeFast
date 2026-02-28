@@ -39,6 +39,7 @@ Run full local foundation checks (includes `flutter pub get`) with `make bootstr
 If Flutter is not on `PATH`, run `FLUTTER_BIN=/path/to/flutter make bootstrap`.
 Deploy all edge functions with `make deploy-functions` (or `./scripts/deploy-functions-remote.sh`).
 Run remote smoke validation with `./scripts/smoke-remote.sh`.
+Validate domain association files with `make validate-domain-association`.
 
 ## Repository structure
 
@@ -52,6 +53,7 @@ Run remote smoke validation with `./scripts/smoke-remote.sh`.
 
 1. Keep remote edge function deploys aligned with `--import-map supabase/functions/deno.json --no-verify-jwt --use-api`.
 2. Configure domain association files for production deep links (`assetlinks.json` + `apple-app-site-association`).
+   Use `docs/deep-link-release.md`.
 3. Wire production push provider webhook secrets and run non-dry-run delivery validation.
 
 See `docs/api-contracts.md` for current edge function payloads.

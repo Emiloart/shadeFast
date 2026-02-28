@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/telemetry/app_telemetry.dart';
 import '../../auth/application/auth_bootstrap_provider.dart';
 import '../../auth/domain/auth_bootstrap_state.dart';
 import '../../communities/data/community_edge_functions.dart';
@@ -10,7 +11,6 @@ import '../../communities/domain/community.dart';
 import '../../communities/presentation/create_community_dialog.dart';
 import '../../communities/presentation/join_community_dialog.dart';
 import '../../experiments/application/experiment_providers.dart';
-import '../../experiments/data/experiment_edge_functions.dart';
 import '../../private_chats/data/private_chat_edge_functions.dart';
 import '../../private_chats/domain/private_chat.dart';
 import '../../private_chats/presentation/create_private_chat_link_dialog.dart';
@@ -58,8 +58,9 @@ class OnboardingScreen extends ConsumerWidget {
                   message: 'Initializing anonymous session...',
                 ),
                 error: (_, __) => const _StatusPanel(
-                  message:
-                      'Auth bootstrap failed. Check Supabase settings and retry.',
+                  message: 'Auth bootstrap failed. Retry session bootstrap.',
+                  actionLabel: 'Retry',
+                  onActionProvider: _retryBootstrap,
                 ),
                 data: (AuthBootstrapState state) {
                   if (state.status == AuthBootstrapStatus.ready) {
@@ -232,6 +233,18 @@ Future<void> _showCreateCommunityDialog(
       ),
     );
 
+    await _trackExperimentEvent(
+      ref,
+      eventName: 'onboarding_create_community_success',
+      properties: <String, Object?>{
+        'category': community.category,
+        'isPrivate': community.isPrivate,
+      },
+    );
+    if (!context.mounted) {
+      return;
+    }
+
     context.go('/community/${community.id}');
   } catch (error) {
     if (!context.mounted) {
@@ -240,6 +253,14 @@ Future<void> _showCreateCommunityDialog(
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Create failed: $error')),
+    );
+
+    await _trackExperimentEvent(
+      ref,
+      eventName: 'onboarding_create_community_failure',
+      properties: <String, Object?>{
+        'errorType': error.runtimeType.toString(),
+      },
     );
   }
 }
@@ -263,6 +284,14 @@ Future<void> _showJoinCommunityDialog(
     return;
   }
 
+  await _trackExperimentEvent(
+    ref,
+    eventName: 'onboarding_join_community_submit',
+    properties: <String, dynamic>{
+      'joinCodeLength': joinCode.length,
+    },
+  );
+
   try {
     final community = await api.joinCommunity(joinCode: joinCode);
 
@@ -274,6 +303,18 @@ Future<void> _showJoinCommunityDialog(
       SnackBar(content: Text('Joined ${community.name}.')),
     );
 
+    await _trackExperimentEvent(
+      ref,
+      eventName: 'onboarding_join_community_success',
+      properties: <String, dynamic>{
+        'category': community.category,
+        'isPrivate': community.isPrivate,
+      },
+    );
+    if (!context.mounted) {
+      return;
+    }
+
     context.go('/community/${community.id}');
   } catch (error) {
     if (!context.mounted) {
@@ -282,6 +323,14 @@ Future<void> _showJoinCommunityDialog(
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Join failed: $error')),
+    );
+
+    await _trackExperimentEvent(
+      ref,
+      eventName: 'onboarding_join_community_failure',
+      properties: <String, dynamic>{
+        'errorType': error.runtimeType.toString(),
+      },
     );
   }
 }
@@ -321,6 +370,17 @@ Future<void> _showCreatePrivateChatLink(
 
     await _showPrivateLinkCreatedDialog(context, link);
 
+    if (!context.mounted) {
+      return;
+    }
+
+    await _trackExperimentEvent(
+      ref,
+      eventName: 'onboarding_private_link_success',
+      properties: <String, dynamic>{
+        'readOnce': link.chat.readOnce,
+      },
+    );
     if (!context.mounted) {
       return;
     }
@@ -366,28 +426,37 @@ Future<void> _showCreatePrivateChatLink(
             : null,
       ),
     );
+
+    await _trackExperimentEvent(
+      ref,
+      eventName: 'onboarding_private_link_failure',
+      properties: <String, Object?>{
+        'errorType': error.runtimeType.toString(),
+        'premiumRequired': requiresPremium,
+      },
+    );
   }
 }
 
 Future<void> _trackExperimentEvent(
   WidgetRef ref, {
   required String eventName,
-  Map<String, dynamic>? properties,
+  Map<String, Object?> properties = const <String, Object?>{},
 }) async {
-  final api = ref.read(experimentEdgeFunctionsProvider);
-  if (api == null) {
+  final telemetry = ref.read(appTelemetryProvider);
+  if (telemetry == null) {
     return;
   }
 
-  try {
-    await api.trackExperimentEvent(
-      eventName: eventName,
-      properties: properties,
-      platform: 'mobile',
-    );
-  } catch (_) {
-    // Ignore instrumentation failures in onboarding UX flows.
-  }
+  await telemetry.trackEvent(
+    eventName: eventName,
+    properties: properties,
+  );
+}
+
+void _retryBootstrap(WidgetRef ref) {
+  ref.invalidate(authBootstrapProvider);
+  ref.invalidate(featureFlagSnapshotProvider);
 }
 
 Future<void> _showPrivateLinkCreatedDialog(
@@ -438,29 +507,58 @@ class _StatusPanel extends StatelessWidget {
   const _StatusPanel({
     required this.message,
     this.isWarning = false,
+    this.actionLabel,
+    this.onActionProvider,
   });
 
   final String message;
   final bool isWarning;
+  final String? actionLabel;
+  final void Function(WidgetRef ref)? onActionProvider;
 
   @override
   Widget build(BuildContext context) {
     final borderColor =
         isWarning ? const Color(0xFFFFB020) : const Color(0xFF2DD4BF);
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111111),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor),
-      ),
-      child: Text(
-        message,
-        style:
-            TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
-      ),
+    return Consumer(
+      builder: (BuildContext context, WidgetRef ref, Widget? child) {
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF111111),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                message,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 13,
+                ),
+              ),
+              if (actionLabel != null && onActionProvider != null) ...<Widget>[
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => onActionProvider!(ref),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: Text(actionLabel!),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }

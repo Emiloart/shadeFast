@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/telemetry/app_telemetry.dart';
 import '../../moderation/application/blocked_users_controller.dart';
 import '../../moderation/data/moderation_edge_functions.dart';
 import '../../moderation/domain/moderation_models.dart';
@@ -231,12 +232,23 @@ Future<void> _toggleAuthorBlock(
 
 Future<void> _showCreatePostDialog(BuildContext context, WidgetRef ref) async {
   final api = ref.read(postEdgeFunctionsProvider);
+  final telemetry = ref.read(appTelemetryProvider);
   if (api == null) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Supabase is not configured.')),
     );
+    telemetry?.trackEventInBackground(
+      eventName: 'global_post_create_failure',
+      properties: const <String, Object?>{
+        'reason': 'supabase_not_configured',
+      },
+    );
     return;
   }
+
+  telemetry?.trackEventInBackground(
+    eventName: 'global_post_dialog_open',
+  );
 
   final dialogResult = await showDialog<CreatePostDialogResult>(
     context: context,
@@ -244,6 +256,9 @@ Future<void> _showCreatePostDialog(BuildContext context, WidgetRef ref) async {
   );
 
   if (dialogResult == null) {
+    telemetry?.trackEventInBackground(
+      eventName: 'global_post_dialog_cancel',
+    );
     return;
   }
 
@@ -278,6 +293,15 @@ Future<void> _showCreatePostDialog(BuildContext context, WidgetRef ref) async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Posted. Expires at ${post.expiresAt}.')),
     );
+
+    telemetry?.trackEventInBackground(
+      eventName: 'global_post_create_success',
+      properties: <String, Object?>{
+        'hasImage': imageUrl != null,
+        'hasVideo': videoUrl != null,
+        'ttlHours': dialogResult.ttlHours,
+      },
+    );
   } catch (error) {
     if (!context.mounted) {
       return;
@@ -285,6 +309,15 @@ Future<void> _showCreatePostDialog(BuildContext context, WidgetRef ref) async {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Post failed: $error')),
+    );
+
+    telemetry?.trackEventInBackground(
+      eventName: 'global_post_create_failure',
+      properties: <String, Object?>{
+        'errorType': error.runtimeType.toString(),
+        'hasImage': dialogResult.imagePath != null,
+        'hasVideo': dialogResult.videoPath != null,
+      },
     );
   }
 }

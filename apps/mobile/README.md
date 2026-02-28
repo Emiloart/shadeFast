@@ -26,6 +26,9 @@ Current baseline:
 - heart reaction toggle wired through `react-to-post` edge function
 - Android/iOS projects generated and ready for build
 - Android App Links + iOS URL scheme configured for invite links
+- mobile release identifiers standardized:
+  - Android package/application id: `io.shadefast.mobile`
+  - iOS bundle id: `io.shadefast.mobile`
 
 Run with env:
 
@@ -34,3 +37,12 @@ flutter run \
   --dart-define=SUPABASE_URL=YOUR_URL \
   --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY
 ```
+
+## Release signing (Android)
+
+1. Copy `android/key.properties.example` to `android/key.properties`.
+2. Replace values with your release keystore settings.
+3. Place keystore file at the referenced `storeFile` path.
+
+When `android/key.properties` is present, release builds use release signing.
+Without it, release builds fall back to debug signing for local smoke usage only.
