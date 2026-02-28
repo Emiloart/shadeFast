@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/performance/app_performance_tracker.dart';
 import '../../../core/telemetry/app_telemetry.dart';
 import '../../moderation/application/blocked_users_controller.dart';
 import '../../moderation/data/moderation_edge_functions.dart';
@@ -15,11 +16,18 @@ import '../application/feed_controllers.dart';
 import '../domain/feed_models.dart';
 import 'post_content.dart';
 
-class GlobalFeedScreen extends ConsumerWidget {
+class GlobalFeedScreen extends ConsumerStatefulWidget {
   const GlobalFeedScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GlobalFeedScreen> createState() => _GlobalFeedScreenState();
+}
+
+class _GlobalFeedScreenState extends ConsumerState<GlobalFeedScreen> {
+  bool _hasTrackedFirstContentPaint = false;
+
+  @override
+  Widget build(BuildContext context) {
     final feed = ref.watch(globalFeedControllerProvider);
     final likedPosts = ref.watch(likedPostIdsProvider);
     final blockedUsers =
@@ -61,6 +69,10 @@ class GlobalFeedScreen extends ConsumerWidget {
           final visiblePosts = state.items
               .where((ShadePost post) => !blockedUsers.contains(post.userUuid))
               .toList(growable: false);
+          _trackFirstContentPaint(
+            visibleCount: visiblePosts.length,
+            hasMore: state.hasMore,
+          );
 
           return RefreshIndicator(
             onRefresh: () => ref
@@ -116,6 +128,28 @@ class GlobalFeedScreen extends ConsumerWidget {
         icon: const Icon(Icons.add_comment_outlined),
       ),
     );
+  }
+
+  void _trackFirstContentPaint({
+    required int visibleCount,
+    required bool hasMore,
+  }) {
+    if (_hasTrackedFirstContentPaint) {
+      return;
+    }
+
+    _hasTrackedFirstContentPaint = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      ref.read(appPerformanceTrackerProvider).trackFeedFirstContentPaint(
+            feedType: 'global',
+            visibleCount: visibleCount,
+            hasMore: hasMore,
+          );
+    });
   }
 }
 

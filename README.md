@@ -32,8 +32,9 @@ Phase 1 (foundation) is complete in this repository with:
 - experiment framework baseline (`feature_flags`, `experiment_events`, rollout-aware mobile gating + event tracking)
 - in-app legal surfaces (`/legal` Terms/Privacy/Guidelines)
 - incident response runbook (`docs/incident-runbook.md`)
+- startup and feed performance telemetry baseline (`app_first_frame`, `app_startup_ready`, `feed_fetch_completed`, `feed_first_content_paint`)
 
-Track progress in `docs/phase-1-status.md` and `docs/phase-2-status.md`.
+Track progress in `docs/phase-1-status.md`, `docs/phase-2-status.md`, and `docs/launch-optimization-status.md`.
 Validate baseline migrations locally with `make validate-migrations`.
 Run full local foundation checks (includes `flutter pub get`) with `make bootstrap`.
 If Flutter is not on `PATH`, run `FLUTTER_BIN=/path/to/flutter make bootstrap`.
@@ -51,9 +52,8 @@ Validate domain association files with `make validate-domain-association`.
 
 ## Next steps
 
-1. Keep remote edge function deploys aligned with `--import-map supabase/functions/deno.json --no-verify-jwt --use-api`.
-2. Configure domain association files for production deep links (`assetlinks.json` + `apple-app-site-association`).
-   Use `docs/deep-link-release.md`.
+1. Run the manual device/profile pass in [docs/performance-validation.md](/mnt/c/dev/shadefast/docs/performance-validation.md).
+2. Complete store assets and policy answers in [docs/store-launch-backlog.md](/mnt/c/dev/shadefast/docs/store-launch-backlog.md).
 3. Wire production push provider webhook secrets and run non-dry-run delivery validation.
 
 See `docs/api-contracts.md` for current edge function payloads.

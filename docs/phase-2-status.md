@@ -48,4 +48,4 @@ State: complete
 
 ## Next
 
-1. Start next sprint priorities from product roadmap (conversion, retention, and store launch execution).
+1. Launch optimization and store execution are now tracked in `docs/launch-optimization-status.md`.

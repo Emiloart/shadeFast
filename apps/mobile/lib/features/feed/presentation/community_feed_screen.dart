@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/performance/app_performance_tracker.dart';
 import '../../../core/telemetry/app_telemetry.dart';
 import '../../moderation/application/blocked_users_controller.dart';
 import '../../moderation/data/moderation_edge_functions.dart';
@@ -15,7 +16,7 @@ import '../application/feed_controllers.dart';
 import '../domain/feed_models.dart';
 import 'post_content.dart';
 
-class CommunityFeedScreen extends ConsumerWidget {
+class CommunityFeedScreen extends ConsumerStatefulWidget {
   const CommunityFeedScreen({
     required this.communityId,
     super.key,
@@ -24,8 +25,16 @@ class CommunityFeedScreen extends ConsumerWidget {
   final String communityId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final feed = ref.watch(communityFeedControllerProvider(communityId));
+  ConsumerState<CommunityFeedScreen> createState() =>
+      _CommunityFeedScreenState();
+}
+
+class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
+  bool _hasTrackedFirstContentPaint = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final feed = ref.watch(communityFeedControllerProvider(widget.communityId));
     final likedPosts = ref.watch(likedPostIdsProvider);
     final blockedUsers =
         ref.watch(blockedUsersControllerProvider).valueOrNull ?? <String>{};
@@ -35,7 +44,8 @@ class CommunityFeedScreen extends ConsumerWidget {
         title: const Text('Community Feed'),
         actions: <Widget>[
           IconButton(
-            onPressed: () => context.push('/polls?communityId=$communityId'),
+            onPressed: () =>
+                context.push('/polls?communityId=${widget.communityId}'),
             tooltip: 'Community Polls',
             icon: const Icon(Icons.poll_outlined),
           ),
@@ -60,25 +70,30 @@ class CommunityFeedScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (Object error, StackTrace _) => _FeedErrorState(
           message: 'Failed to load feed: $error',
-          onRetry: () =>
-              ref.invalidate(communityFeedControllerProvider(communityId)),
+          onRetry: () => ref
+              .invalidate(communityFeedControllerProvider(widget.communityId)),
         ),
         data: (FeedPageState state) {
           final visiblePosts = state.items
               .where((ShadePost post) => !blockedUsers.contains(post.userUuid))
               .toList(growable: false);
+          _trackFirstContentPaint(
+            visibleCount: visiblePosts.length,
+            hasMore: state.hasMore,
+          );
 
           return RefreshIndicator(
             onRefresh: () => ref
-                .read(communityFeedControllerProvider(communityId).notifier)
+                .read(communityFeedControllerProvider(widget.communityId)
+                    .notifier)
                 .refreshFromTop(),
             child: NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification notification) {
                 if (notification.metrics.pixels >=
                     notification.metrics.maxScrollExtent - 300) {
                   ref
-                      .read(
-                          communityFeedControllerProvider(communityId).notifier)
+                      .read(communityFeedControllerProvider(widget.communityId)
+                          .notifier)
                       .loadMore();
                 }
                 return false;
@@ -103,13 +118,14 @@ class CommunityFeedScreen extends ConsumerWidget {
                     post: post,
                     isLiked: likedPosts.contains(post.id),
                     isAuthorBlocked: isAuthorBlocked,
-                    onToggleLike: () => _toggleLike(ref, communityId, post),
+                    onToggleLike: () =>
+                        _toggleLike(ref, widget.communityId, post),
                     onOpenReplies: () => _showRepliesSheet(context, post.id),
                     onReport: () => _reportPost(context, ref, post),
                     onToggleAuthorBlock: () => _toggleAuthorBlock(
                       context,
                       ref,
-                      communityId,
+                      widget.communityId,
                       post,
                       isCurrentlyBlocked: isAuthorBlocked,
                     ),
@@ -122,11 +138,33 @@ class CommunityFeedScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () =>
-            _showCreateCommunityPostDialog(context, ref, communityId),
+            _showCreateCommunityPostDialog(context, ref, widget.communityId),
         label: const Text('Post'),
         icon: const Icon(Icons.add_comment_outlined),
       ),
     );
+  }
+
+  void _trackFirstContentPaint({
+    required int visibleCount,
+    required bool hasMore,
+  }) {
+    if (_hasTrackedFirstContentPaint) {
+      return;
+    }
+
+    _hasTrackedFirstContentPaint = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      ref.read(appPerformanceTrackerProvider).trackFeedFirstContentPaint(
+            feedType: 'community',
+            visibleCount: visibleCount,
+            hasMore: hasMore,
+          );
+    });
   }
 }
 

@@ -4,6 +4,19 @@ Legend:
 - Status: `todo`, `in_progress`, `blocked`, `done`
 - Priority: `P0` critical, `P1` high, `P2` medium
 
+## Active Sprint: Launch Optimization + Store Execution
+
+| ID | Priority | Status | Task | Output |
+|---|---|---|---|---|
+| LNZ-001 | P0 | done | Kick off launch optimization tracking | `docs/execution-backlog.md` + `docs/launch-optimization-status.md` aligned to active sprint |
+| LNZ-002 | P0 | done | Capture startup performance telemetry | `core/performance` tracker + app first-frame/startup-ready timing events |
+| LNZ-003 | P0 | done | Capture feed fetch/render performance telemetry | feed fetch duration + first content paint instrumentation on global/community feeds |
+| LNZ-004 | P1 | done | Publish store launch execution backlog | `docs/store-launch-backlog.md` |
+| LNZ-005 | P1 | done | Publish manual performance validation protocol | `docs/performance-validation.md` |
+| LNZ-006 | P0 | todo | Run profile-mode device validation against SLOs | measured startup/feed timings from device matrix captured against thresholds |
+| LNZ-007 | P0 | todo | Complete store metadata, screenshots, and policy answers | production store listing assets ready for App Store Connect + Play Console |
+| LNZ-008 | P1 | todo | Wire live push credentials and validate delivery | provider secrets configured + non-dry-run push smoke proof |
+
 ## Active Phase 2: Hardening Sprint
 
 | ID | Priority | Status | Task | Output |

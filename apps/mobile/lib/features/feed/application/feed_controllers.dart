@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/performance/app_performance_tracker.dart';
 import '../../../core/supabase/supabase_providers.dart';
 import '../../posts/domain/post.dart';
 import '../data/feed_repository.dart';
@@ -28,6 +29,7 @@ class GlobalFeedController extends AutoDisposeAsyncNotifier<FeedPageState> {
   @override
   Future<FeedPageState> build() async {
     final repository = ref.watch(feedRepositoryProvider);
+    final performanceTracker = ref.read(appPerformanceTrackerProvider);
     if (repository == null) {
       throw const FeedException('Supabase is not configured.');
     }
@@ -35,12 +37,31 @@ class GlobalFeedController extends AutoDisposeAsyncNotifier<FeedPageState> {
     _repository = repository;
     _subscribeToRealtime();
 
-    final firstBatch = await repository.fetchGlobalFeed(limit: _pageSize);
-    return FeedPageState.fromBatch(firstBatch);
+    final stopwatch = Stopwatch()..start();
+    try {
+      final firstBatch = await repository.fetchGlobalFeed(limit: _pageSize);
+      performanceTracker.trackFeedFetchCompleted(
+        feedType: 'global',
+        phase: 'initial_load',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        itemCount: firstBatch.items.length,
+        hasMore: firstBatch.hasMore,
+      );
+      return FeedPageState.fromBatch(firstBatch);
+    } catch (error) {
+      performanceTracker.trackFeedFetchFailed(
+        feedType: 'global',
+        phase: 'initial_load',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        error: error,
+      );
+      rethrow;
+    }
   }
 
   Future<void> refreshFromTop() async {
     final repository = _repository;
+    final performanceTracker = ref.read(appPerformanceTrackerProvider);
     if (repository == null) {
       return;
     }
@@ -50,10 +71,24 @@ class GlobalFeedController extends AutoDisposeAsyncNotifier<FeedPageState> {
       state = AsyncData(current.copyWith(isRefreshing: true));
     }
 
+    final stopwatch = Stopwatch()..start();
     try {
       final firstBatch = await repository.fetchGlobalFeed(limit: _pageSize);
+      performanceTracker.trackFeedFetchCompleted(
+        feedType: 'global',
+        phase: 'refresh',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        itemCount: firstBatch.items.length,
+        hasMore: firstBatch.hasMore,
+      );
       state = AsyncData(FeedPageState.fromBatch(firstBatch));
     } catch (error, stackTrace) {
+      performanceTracker.trackFeedFetchFailed(
+        feedType: 'global',
+        phase: 'refresh',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        error: error,
+      );
       if (current != null) {
         state = AsyncData(current.copyWith(isRefreshing: false));
       } else {
@@ -64,6 +99,7 @@ class GlobalFeedController extends AutoDisposeAsyncNotifier<FeedPageState> {
 
   Future<void> loadMore() async {
     final repository = _repository;
+    final performanceTracker = ref.read(appPerformanceTrackerProvider);
     final current = state.valueOrNull;
 
     if (repository == null || current == null) {
@@ -76,6 +112,7 @@ class GlobalFeedController extends AutoDisposeAsyncNotifier<FeedPageState> {
 
     state = AsyncData(current.copyWith(isLoadingMore: true));
 
+    final stopwatch = Stopwatch()..start();
     try {
       final batch = await repository.fetchGlobalFeed(
         limit: _pageSize,
@@ -92,7 +129,20 @@ class GlobalFeedController extends AutoDisposeAsyncNotifier<FeedPageState> {
           isLoadingMore: false,
         ),
       );
-    } catch (_) {
+      performanceTracker.trackFeedFetchCompleted(
+        feedType: 'global',
+        phase: 'load_more',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        itemCount: batch.items.length,
+        hasMore: batch.hasMore,
+      );
+    } catch (error) {
+      performanceTracker.trackFeedFetchFailed(
+        feedType: 'global',
+        phase: 'load_more',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        error: error,
+      );
       state = AsyncData(current.copyWith(isLoadingMore: false));
     }
   }
@@ -143,6 +193,7 @@ class CommunityFeedController
   @override
   Future<FeedPageState> build(String communityId) async {
     final repository = ref.watch(feedRepositoryProvider);
+    final performanceTracker = ref.read(appPerformanceTrackerProvider);
     if (repository == null) {
       throw const FeedException('Supabase is not configured.');
     }
@@ -151,16 +202,35 @@ class CommunityFeedController
     _communityId = communityId;
     _subscribeToRealtime(communityId);
 
-    final firstBatch = await repository.fetchCommunityFeed(
-      communityId: communityId,
-      limit: _pageSize,
-    );
+    final stopwatch = Stopwatch()..start();
+    try {
+      final firstBatch = await repository.fetchCommunityFeed(
+        communityId: communityId,
+        limit: _pageSize,
+      );
+      performanceTracker.trackFeedFetchCompleted(
+        feedType: 'community',
+        phase: 'initial_load',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        itemCount: firstBatch.items.length,
+        hasMore: firstBatch.hasMore,
+      );
 
-    return FeedPageState.fromBatch(firstBatch);
+      return FeedPageState.fromBatch(firstBatch);
+    } catch (error) {
+      performanceTracker.trackFeedFetchFailed(
+        feedType: 'community',
+        phase: 'initial_load',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        error: error,
+      );
+      rethrow;
+    }
   }
 
   Future<void> refreshFromTop() async {
     final repository = _repository;
+    final performanceTracker = ref.read(appPerformanceTrackerProvider);
     final current = state.valueOrNull;
     final communityId = _communityId;
 
@@ -172,13 +242,27 @@ class CommunityFeedController
       state = AsyncData(current.copyWith(isRefreshing: true));
     }
 
+    final stopwatch = Stopwatch()..start();
     try {
       final firstBatch = await repository.fetchCommunityFeed(
         communityId: communityId,
         limit: _pageSize,
       );
+      performanceTracker.trackFeedFetchCompleted(
+        feedType: 'community',
+        phase: 'refresh',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        itemCount: firstBatch.items.length,
+        hasMore: firstBatch.hasMore,
+      );
       state = AsyncData(FeedPageState.fromBatch(firstBatch));
     } catch (error, stackTrace) {
+      performanceTracker.trackFeedFetchFailed(
+        feedType: 'community',
+        phase: 'refresh',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        error: error,
+      );
       if (current != null) {
         state = AsyncData(current.copyWith(isRefreshing: false));
       } else {
@@ -189,6 +273,7 @@ class CommunityFeedController
 
   Future<void> loadMore() async {
     final repository = _repository;
+    final performanceTracker = ref.read(appPerformanceTrackerProvider);
     final current = state.valueOrNull;
     final communityId = _communityId;
 
@@ -202,6 +287,7 @@ class CommunityFeedController
 
     state = AsyncData(current.copyWith(isLoadingMore: true));
 
+    final stopwatch = Stopwatch()..start();
     try {
       final batch = await repository.fetchCommunityFeed(
         communityId: communityId,
@@ -219,7 +305,20 @@ class CommunityFeedController
           isLoadingMore: false,
         ),
       );
-    } catch (_) {
+      performanceTracker.trackFeedFetchCompleted(
+        feedType: 'community',
+        phase: 'load_more',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        itemCount: batch.items.length,
+        hasMore: batch.hasMore,
+      );
+    } catch (error) {
+      performanceTracker.trackFeedFetchFailed(
+        feedType: 'community',
+        phase: 'load_more',
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        error: error,
+      );
       state = AsyncData(current.copyWith(isLoadingMore: false));
     }
   }
